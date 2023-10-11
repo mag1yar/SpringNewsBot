@@ -1,5 +1,6 @@
 package com.news.springnews.bot;
 
+import com.news.springnews.parser.SpringNewsParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,9 +79,11 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                 Чтобы подписаться, просто нажмите на соответствующую кнопку с номером каталога. Вы можете подписаться на несколько каталогов одновременно или изменить свой выбор в любое время.
                                 
                 Не упустите возможность быть в курсе событий! 📩
+                %s
                 """;
 
-        var formattedText = String.format(text, userName);
+        var formattedText = String.format(text, userName, new SpringNewsParser().getTitle());
         sendMessage(chatId, formattedText);
+
     }
 }
