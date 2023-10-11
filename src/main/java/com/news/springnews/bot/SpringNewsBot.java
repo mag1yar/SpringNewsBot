@@ -8,7 +8,12 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class SpringNewsBot extends TelegramLongPollingBot {
@@ -17,6 +22,8 @@ public class SpringNewsBot extends TelegramLongPollingBot {
 
     private static final String COMMAND_START = "/start";
     private static final String COMMAND_HELP = "/help";
+    private static final String COMMAND_NEWS_KZ = "🇰🇿 Новости Казахстана";
+    private static final String COMMAND_NEWS_GAMES = "🧑‍💻 Игровые новости";
 
 
     public SpringNewsBot(@Value("${bot.token}") String token) {
@@ -35,6 +42,12 @@ public class SpringNewsBot extends TelegramLongPollingBot {
             case COMMAND_START -> {
                 startCommand(chatId, userName);
             }
+            case COMMAND_NEWS_KZ -> {
+                kzNewsCommand(chatId, userName);
+            }
+            case COMMAND_NEWS_GAMES -> {
+                gameNewsCommand(chatId, userName);
+            }
         }
 
     }
@@ -42,16 +55,6 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     @Override
     public String getBotUsername() {
         return "SpringNews";
-    }
-
-    private void sendMessage(Long chatId, String text) {
-        var chatIdStr = String.valueOf(chatId);
-        var sendMessage = new SendMessage(chatIdStr, text);
-        try {
-            execute(sendMessage);
-        }catch (TelegramApiException e) {
-            LOG.error("Ошибка отправки сообщения", e);
-        }
     }
 
     private void startCommand(Long chatId, String userName) {
@@ -63,27 +66,92 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                                 
                 Вы хотите всегда быть в курсе последних новостей и событий? Мы предлагаем вам уникальную возможность подписаться на различные новостные каталоги, которые будут регулярно обновлять вас актуальными новостями из разных областей.
                                 
-                У нас есть подборки новостей по следующим темам:
-                1. 🌍 Мировые события
-                2. 📰 Политика
-                3. 💼 Бизнес
-                4. 🎬 Развлечения
-                5. 🏞️ Путешествия
-                6. 🎨 Искусство и культура
-                7. 🏈 Спорт
-                8. 📱 Технологии
-                9. 🌱 Наука и здоровье
-                                
+                Вы можете подписаться на следующие новости:
+                %s
+                %s
+                       
                 Выберите интересующий вас каталог и мы начнем отправлять вам самые актуальные новости по этой теме.
                                 
                 Чтобы подписаться, просто нажмите на соответствующую кнопку с номером каталога. Вы можете подписаться на несколько каталогов одновременно или изменить свой выбор в любое время.
                                 
                 Не упустите возможность быть в курсе событий! 📩
-                %s
                 """;
 
-        var formattedText = String.format(text, userName, new SpringNewsParser().getTitle());
-        sendMessage(chatId, formattedText);
 
+
+        var formattedText = String.format(text, userName, COMMAND_NEWS_KZ, COMMAND_NEWS_GAMES);
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(formattedText);
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+
+        row.add(COMMAND_NEWS_KZ);
+        row.add(COMMAND_NEWS_GAMES);
+
+        keyboard.add(row);
+
+        keyboardMarkup.setKeyboard(keyboard);
+
+        message.setReplyMarkup(keyboardMarkup);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
+    private void kzNewsCommand(Long chatId, String userName) {
+        LOG.info(chatId + " " + userName);
+
+        SpringNewsParser springNewsParser = new SpringNewsParser();
+        var titles = springNewsParser.getKzNewsTitles();
+
+        var text = "Новости за текущий момент:\n";
+        if (titles.isEmpty()) {
+            text = "Простите, что-то пошло не так, попробуйте позже.";
+        } else {
+            for (int i = 0; i < titles.size(); i++) {
+                text += (i + 1) + ". " + titles.get(i) + "\n";
+            }
+        }
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+    private void gameNewsCommand(Long chatId, String userName) {
+        LOG.info(chatId + " " + userName);
+
+        SpringNewsParser springNewsParser = new SpringNewsParser();
+        var titles = springNewsParser.getGameNewsTitles();
+
+        var text = "Игровые новости за текущий момент:\n";
+        if (titles.isEmpty()) {
+            text = "Простите, что-то пошло не так, попробуйте позже.";
+        } else {
+            for (int i = 0; i < titles.size(); i++) {
+                text += (i + 1) + ". " + titles.get(i) + "\n";
+            }
+        }
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
