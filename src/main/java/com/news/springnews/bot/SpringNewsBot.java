@@ -54,6 +54,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     }
 
     private void startCommand(Long chatId, String userName) {
+        LOG.info(chatId + " " + userName );
         var text = """
                 Добро пожаловать, %s! 👋
                                 
@@ -78,6 +79,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                                 
                 Не упустите возможность быть в курсе событий! 📩
                 """;
+
         var formattedText = String.format(text, userName);
         sendMessage(chatId, formattedText);
     }
