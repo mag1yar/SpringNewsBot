@@ -106,8 +106,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     private void kzNewsCommand(Long chatId, String userName) {
         LOG.info(chatId + " " + userName);
 
-        SpringNewsParser springNewsParser = new SpringNewsParser();
-        var titles = springNewsParser.getKzNewsTitles();
+        var titles = SpringNewsParser.parseKzNewsTitles();
 
         var text = "Новости за текущий момент:\n";
         if (titles.isEmpty()) {
@@ -131,8 +130,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     private void gameNewsCommand(Long chatId, String userName) {
         LOG.info(chatId + " " + userName);
 
-        SpringNewsParser springNewsParser = new SpringNewsParser();
-        var titles = springNewsParser.getGameNewsTitles();
+        var titles = SpringNewsParser.parseGameNewsTitles();
 
         var text = "Игровые новости за текущий момент:\n";
         if (titles.isEmpty()) {

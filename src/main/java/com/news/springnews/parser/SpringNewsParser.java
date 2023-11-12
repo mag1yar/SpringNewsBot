@@ -9,7 +9,7 @@ import java.util.List;
 
 public class SpringNewsParser {
 
-    public List<String> getKzNewsTitles() {
+    public static List<String> parseKzNewsTitles() {
         List<String> newsTitles = new ArrayList<>();
 
         try {
@@ -26,7 +26,7 @@ public class SpringNewsParser {
 
         return newsTitles;
     }
-    public List<String> getGameNewsTitles() {
+    public static List<String> parseGameNewsTitles() {
         List<String> newsTitles = new ArrayList<>();
 
         try {
