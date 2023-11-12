@@ -3,12 +3,14 @@ package com.news.springnews.parser;
 import com.news.springnews.enums.NewsType;
 import com.news.springnews.model.News;
 import org.jsoup.Jsoup;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Component
 public class KzInformburoNewsParser implements INewsParser {
 
     @Override

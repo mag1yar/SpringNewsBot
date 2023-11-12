@@ -1,10 +1,14 @@
 package com.news.springnews.bot;
 
 import com.news.springnews.constants.Command;
-import com.news.springnews.parser.GameStopGameNewsParser;
-import com.news.springnews.parser.KzInformburoNewsParser;
+import com.news.springnews.enums.SubscriptionType;
+import com.news.springnews.model.User;
+import com.news.springnews.model.UserSubscription;
+import com.news.springnews.service.UserService;
+import com.news.springnews.service.UserSubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -21,13 +25,15 @@ import java.util.List;
 public class SpringNewsBot extends TelegramLongPollingBot {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringNewsBot.class);
-    private static KzInformburoNewsParser kzInformburoNewsParser;
-    private static GameStopGameNewsParser gameStopGameNewsParser;
 
-    public SpringNewsBot(@Value("${bot.token}") String token) {
+    private final UserService userService;
+    private final UserSubscriptionService userSubscriptionService;
+
+    @Autowired
+    public SpringNewsBot(@Value("${bot.token}") String token, UserService userService, UserSubscriptionService userSubscriptionService) {
         super(token);
-        kzInformburoNewsParser = new KzInformburoNewsParser();
-        gameStopGameNewsParser = new GameStopGameNewsParser();
+        this.userService = userService;
+        this.userSubscriptionService = userSubscriptionService;
     }
 
     @Override
@@ -38,15 +44,28 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         var chatId = update.getMessage().getChatId();
         var userName = update.getMessage().getChat().getUserName();
 
+        User user = userService.getExistingOrCreateUser(chatId, userName);
+
         switch (message) {
             case Command.START -> {
                 startCommand(chatId, userName);
             }
+            case Command.SUBSCRIPTIONS -> {
+                subscriptionsComman(user);
+            }
+
             case Command.NEWS_KZ -> {
                 kzNewsCommand(chatId, userName);
             }
             case Command.NEWS_GAMES -> {
                 gameNewsCommand(chatId, userName);
+            }
+
+            case Command.SUBSCRIBE_KZ_INFORMBURO -> {
+                subscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
+            }
+            case Command.SUBSCRIBE_GAMES_STOPGAME -> {
+                subscribeCommand(user, SubscriptionType.GAME_STOPGAME);
             }
         }
 
@@ -86,6 +105,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
 
+        row.add(Command.SUBSCRIPTIONS);
         row.add(Command.NEWS_KZ);
         row.add(Command.NEWS_GAMES);
 
@@ -102,6 +122,26 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         }
     }
 
+    private void subscriptionsComman(User user) {
+        List<UserSubscription> subscriptions = user.getSubscriptions();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (UserSubscription subscription : subscriptions) {
+            stringBuilder.append(subscription.getType().toText()).append("\n");
+        }
+
+        SendMessage message = new SendMessage();
+        message.setChatId(user.getTelegramId());
+        message.setText(stringBuilder.toString());
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     private void kzNewsCommand(Long chatId, String userName) {
         var text = "Выберите интересующий сервис для подписки на новости Казахстана:";
 
@@ -113,7 +153,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
 
-        row.add(Command.SUBSCRIBE_KZ);
+        row.add(Command.SUBSCRIBE_KZ_INFORMBURO);
 
         keyboard.add(row);
 
@@ -138,7 +178,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
 
-        row.add(Command.SUBSCRIBE_GAMES);
+        row.add(Command.SUBSCRIBE_GAMES_STOPGAME);
 
         keyboard.add(row);
 
@@ -202,52 +242,16 @@ public class SpringNewsBot extends TelegramLongPollingBot {
 //        }
 //    }
 
-    private void subscribeToKzNews(Long chatId, String userName) {
-        var text = "Выберите сервис для подписки на новости Казахстана:";
+    private void subscribeCommand(User user, SubscriptionType type) {
+        userSubscriptionService.subscribeUserToNews(user, type);
+
+        var text = "Спасибо за подписку на %s";
+
+        var formattedText = String.format(text, type.toText());
 
         SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(text);
-
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
-
-        // Добавляем кнопки для подписки
-        row.add("Informburo");
-
-        keyboard.add(row);
-
-        keyboardMarkup.setKeyboard(keyboard);
-
-        message.setReplyMarkup(keyboardMarkup);
-
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subscribeToGameNews(Long chatId, String userName) {
-        var text = "Выберите сервис для подписки на игровые новости:";
-
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(text);
-
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
-
-        // Добавляем кнопки для подписки
-        row.add("StopGame");
-
-        keyboard.add(row);
-
-        keyboardMarkup.setKeyboard(keyboard);
-
-        message.setReplyMarkup(keyboardMarkup);
+        message.setChatId(user.getTelegramId());
+        message.setText(formattedText);
 
         try {
             execute(message);
