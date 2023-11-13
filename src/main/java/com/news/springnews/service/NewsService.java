@@ -1,5 +1,6 @@
 package com.news.springnews.service;
 
+import com.news.springnews.enums.SubscriptionType;
 import com.news.springnews.model.News;
 import com.news.springnews.repository.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,5 +21,9 @@ public class NewsService {
 
     public boolean existsByTitle(String title) {
         return newsRepository.existsByTitle(title);
+    }
+
+    public News getNewsToSubscribers(SubscriptionType type) {
+        return newsRepository.findFirstByIsSendAndType(false, type);
     }
 }

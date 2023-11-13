@@ -1,6 +1,6 @@
 package com.news.springnews.parser;
 
-import com.news.springnews.enums.NewsType;
+import com.news.springnews.enums.SubscriptionType;
 import com.news.springnews.model.News;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class GameStopGameNewsParser implements INewsParser {
                 String title = titleElement.text();
 
                 News newNews = new News();
-                newNews.setType(NewsType.GAME_NEWS);
+                newNews.setType(SubscriptionType.GAME_STOPGAME);
                 newNews.setTitle(title);
                 newNews.setContent("");
 

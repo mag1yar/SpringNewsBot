@@ -1,7 +1,6 @@
 package com.news.springnews.service;
 
 import com.news.springnews.bot.SpringNewsBot;
-import com.news.springnews.enums.NewsType;
 import com.news.springnews.model.News;
 import com.news.springnews.parser.GameStopGameNewsParser;
 import com.news.springnews.parser.KzInformburoNewsParser;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service

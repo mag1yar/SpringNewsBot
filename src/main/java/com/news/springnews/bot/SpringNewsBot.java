@@ -2,16 +2,20 @@ package com.news.springnews.bot;
 
 import com.news.springnews.constants.Command;
 import com.news.springnews.enums.SubscriptionType;
+import com.news.springnews.model.News;
 import com.news.springnews.model.User;
 import com.news.springnews.model.UserSubscription;
+import com.news.springnews.service.NewsService;
 import com.news.springnews.service.UserService;
 import com.news.springnews.service.UserSubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -26,12 +30,14 @@ public class SpringNewsBot extends TelegramLongPollingBot {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringNewsBot.class);
 
+    private final NewsService newsService;
     private final UserService userService;
     private final UserSubscriptionService userSubscriptionService;
 
     @Autowired
-    public SpringNewsBot(@Value("${bot.token}") String token, UserService userService, UserSubscriptionService userSubscriptionService) {
+    public SpringNewsBot(@Value("${bot.token}") String token, NewsService newsService, UserService userService, UserSubscriptionService userSubscriptionService) {
         super(token);
+        this.newsService = newsService;
         this.userService = userService;
         this.userSubscriptionService = userSubscriptionService;
     }
@@ -193,55 +199,6 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         }
     }
 
-//    private void kzNewsCommand(Long chatId, String userName) {
-//        LOG.info(chatId + " " + userName);
-//
-//        var titles = SpringNewsParser.parseKzNewsTitles();
-//
-//        var text = "Новости за текущий момент:\n";
-//        if (titles.isEmpty()) {
-//            text = "Простите, что-то пошло не так, попробуйте позже.";
-//        } else {
-//            for (int i = 0; i < titles.size(); i++) {
-//                text += (i + 1) + ". " + titles.get(i) + "\n";
-//            }
-//        }
-//
-//        SendMessage message = new SendMessage();
-//        message.setChatId(chatId);
-//        message.setText(text);
-//
-//        try {
-//            execute(message);
-//        } catch (TelegramApiException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//    private void gameNewsCommand(Long chatId, String userName) {
-//        LOG.info(chatId + " " + userName);
-//
-//        var titles = SpringNewsParser.parseGameNewsTitles();
-//
-//        var text = "Игровые новости за текущий момент:\n";
-//        if (titles.isEmpty()) {
-//            text = "Простите, что-то пошло не так, попробуйте позже.";
-//        } else {
-//            for (int i = 0; i < titles.size(); i++) {
-//                text += (i + 1) + ". " + titles.get(i) + "\n";
-//            }
-//        }
-//
-//        SendMessage message = new SendMessage();
-//        message.setChatId(chatId);
-//        message.setText(text);
-//
-//        try {
-//            execute(message);
-//        } catch (TelegramApiException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     private void subscribeCommand(User user, SubscriptionType type) {
         userSubscriptionService.subscribeUserToNews(user, type);
 
@@ -258,5 +215,41 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    @Scheduled(fixedDelay = 60000) // 1 min
+    public void sendKzInformburoToSubscribers() {
+        SubscriptionType type = SubscriptionType.KZ_INFORMBURO;
+        News news = newsService.getNewsToSubscribers(type);
+
+        if(news == null) return;
+
+        List<UserSubscription> subscribers = userSubscriptionService.getAllSubscribers();
+
+        String text = """
+                <b>%s</b>
+                %s
+                <blockquote>Цитируем %s</blockquote>
+                """;
+
+        var formattedText = String.format(text, news.getTitle(),news.getContent(), type.toText());
+
+        for (UserSubscription subscriber : subscribers) {
+            User user = subscriber.getUser();
+
+            SendMessage message = new SendMessage();
+            message.setChatId(user.getTelegramId());
+            message.setParseMode(ParseMode.HTML);
+            message.setText(formattedText);
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        }
+
+        news.setSend(true);
+        newsService.saveNews(news);
     }
 }

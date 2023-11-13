@@ -1,6 +1,6 @@
 package com.news.springnews.parser;
 
-import com.news.springnews.enums.NewsType;
+import com.news.springnews.enums.SubscriptionType;
 import com.news.springnews.model.News;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class KzInformburoNewsParser implements INewsParser {
                 String title = titleElement.select("div.uk-width-expand > a").first().ownText();
 
                 News newNews = new News();
-                newNews.setType(NewsType.KZ_NEWS);
+                newNews.setType(SubscriptionType.KZ_INFORMBURO);
                 newNews.setTitle(title);
                 newNews.setContent("");
 

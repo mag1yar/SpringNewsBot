@@ -7,12 +7,16 @@ import com.news.springnews.repository.UserSubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserSubscriptionService {
     @Autowired
     private UserSubscriptionRepository userSubscriptionRepository;
 
-
+    public List<UserSubscription> getAllSubscribers() {
+        return userSubscriptionRepository.findAllByIsActive(true);
+    }
 
     public void subscribeUserToNews(User user, SubscriptionType subscriptionType) {
         UserSubscription existingUserSubscription = userSubscriptionRepository.findByUserAndType(user, subscriptionType);
