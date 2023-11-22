@@ -17,6 +17,9 @@ public class UserSubscriptionService {
     public List<UserSubscription> getAllSubscribers() {
         return userSubscriptionRepository.findAllByIsActive(true);
     }
+    public List<UserSubscription> getAllSubscribersTo(SubscriptionType type) {
+        return userSubscriptionRepository.findAllByIsActiveAndType(true, type);
+    }
 
     public void subscribeUserToNews(User user, SubscriptionType subscriptionType) {
         UserSubscription existingUserSubscription = userSubscriptionRepository.findByUserAndType(user, subscriptionType);

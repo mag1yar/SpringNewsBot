@@ -13,6 +13,7 @@ public class News {
     private SubscriptionType type;
     @Column(unique = true)
     private String title;
+    @Column(columnDefinition = "text")
     private String content;
     private boolean isSend;
 
