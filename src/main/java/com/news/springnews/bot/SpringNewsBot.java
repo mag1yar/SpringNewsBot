@@ -69,6 +69,9 @@ public class SpringNewsBot extends TelegramLongPollingBot {
             case Command.NEWS_GAMES -> {
                 gameNewsCommand(chatId, userName);
             }
+            case Command.NEWS_ANIME -> {
+                animeNewsCommand(chatId, userName);
+            }
 
             case Command.SUBSCRIBE_KZ_INFORMBURO -> {
                 subscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
@@ -81,6 +84,12 @@ public class SpringNewsBot extends TelegramLongPollingBot {
             }
             case Command.UNSUBSCRIBE_GAMES_STOPGAME -> {
                 unsubscribeCommand(user, SubscriptionType.GAME_STOPGAME);
+            }
+            case Command.SUBSCRIBE_ANIME_SHIKIMORI -> {
+                subscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
+            }
+            case Command.UNSUBSCRIBE_ANIME_SHIKIMORI -> {
+                unsubscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
             }
         }
 
@@ -102,6 +111,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                 Вы можете подписаться на следующие новости:
                 %s
                 %s
+                %s
                 
                 Выберите интересующий вас каталог и мы начнем отправлять вам самые актуальные новости по этой теме.
                 
@@ -110,7 +120,7 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                 Не упустите возможность быть в курсе событий! 📩
                 """;
 
-        var formattedText = String.format(text, userName, Command.NEWS_KZ, Command.NEWS_GAMES);
+        var formattedText = String.format(text, userName, Command.NEWS_KZ, Command.NEWS_GAMES, Command.NEWS_ANIME);
 
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
@@ -125,10 +135,13 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         row2.add(Command.NEWS_KZ);
         KeyboardRow row3 = new KeyboardRow();
         row3.add(Command.NEWS_GAMES);
+        KeyboardRow row4 = new KeyboardRow();
+        row4.add(Command.NEWS_ANIME);
 
         keyboard.add(row1);
         keyboard.add(row2);
         keyboard.add(row3);
+        keyboard.add(row4);
 
         keyboardMarkup.setKeyboard(keyboard);
 
@@ -155,10 +168,13 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         row2.add(Command.NEWS_KZ);
         KeyboardRow row3 = new KeyboardRow();
         row3.add(Command.NEWS_GAMES);
+        KeyboardRow row4 = new KeyboardRow();
+        row4.add(Command.NEWS_ANIME);
 
         keyboard.add(row1);
         keyboard.add(row2);
         keyboard.add(row3);
+        keyboard.add(row4);
 
         keyboardMarkup.setKeyboard(keyboard);
 
@@ -197,6 +213,9 @@ public class SpringNewsBot extends TelegramLongPollingBot {
                 row.add(Command.UNSUBSCRIBE_KZ_INFORMBURO);
             } else if (subscription.getType() == SubscriptionType.GAME_STOPGAME) {
                 row.add(Command.UNSUBSCRIBE_GAMES_STOPGAME);
+            }
+            else if (subscription.getType() == SubscriptionType.ANIME_SHIKIMORI) {
+                row.add(Command.UNSUBSCRIBE_ANIME_SHIKIMORI);
             }
             keyboard.add(row);
         }
@@ -256,6 +275,35 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         row1.add(Command.Home);
         KeyboardRow row2 = new KeyboardRow();
         row2.add(Command.SUBSCRIBE_GAMES_STOPGAME);
+
+        keyboard.add(row1);
+        keyboard.add(row2);
+
+        keyboardMarkup.setKeyboard(keyboard);
+
+        message.setReplyMarkup(keyboardMarkup);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void animeNewsCommand(Long chatId, String userName) {
+        var text = "Выберите интересующий сервис для подписки на новости по аниме:";
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add(Command.Home);
+        KeyboardRow row2 = new KeyboardRow();
+        row2.add(Command.SUBSCRIBE_ANIME_SHIKIMORI);
 
         keyboard.add(row1);
         keyboard.add(row2);
@@ -363,5 +411,10 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     @Scheduled(fixedDelay = 60000) // 1 min
     public void sendGameStopGameToSubscribers() {
         sendNewsToSubscribers(SubscriptionType.GAME_STOPGAME);
+    }
+
+    @Scheduled(fixedDelay = 60000) // 1 min
+    public void sendAnimeShikimoriToSubscribers() {
+        sendNewsToSubscribers(SubscriptionType.ANIME_SHIKIMORI);
     }
 }
