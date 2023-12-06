@@ -194,7 +194,9 @@ public class SpringNewsBot extends TelegramLongPollingBot {
 
         stringBuilder.append("Мои подписки: \n");
         for (UserSubscription subscription : subscriptions) {
-            stringBuilder.append(subscription.getType().toText()).append("\n");
+            if(subscription.getActive()) {
+                stringBuilder.append(subscription.getType().toText()).append("\n");
+            }
         }
 
         SendMessage message = new SendMessage();
@@ -208,16 +210,18 @@ public class SpringNewsBot extends TelegramLongPollingBot {
         row1.add(Command.Home);
         keyboard.add(row1);
         for (UserSubscription subscription : subscriptions) {
-            KeyboardRow row = new KeyboardRow();
-            if (subscription.getType() == SubscriptionType.KZ_INFORMBURO) {
-                row.add(Command.UNSUBSCRIBE_KZ_INFORMBURO);
-            } else if (subscription.getType() == SubscriptionType.GAME_STOPGAME) {
-                row.add(Command.UNSUBSCRIBE_GAMES_STOPGAME);
+            if(subscription.getActive()) {
+                KeyboardRow row = new KeyboardRow();
+                if (subscription.getType() == SubscriptionType.KZ_INFORMBURO) {
+                    row.add(Command.UNSUBSCRIBE_KZ_INFORMBURO);
+                } else if (subscription.getType() == SubscriptionType.GAME_STOPGAME) {
+                    row.add(Command.UNSUBSCRIBE_GAMES_STOPGAME);
+                }
+                else if (subscription.getType() == SubscriptionType.ANIME_SHIKIMORI) {
+                    row.add(Command.UNSUBSCRIBE_ANIME_SHIKIMORI);
+                }
+                keyboard.add(row);
             }
-            else if (subscription.getType() == SubscriptionType.ANIME_SHIKIMORI) {
-                row.add(Command.UNSUBSCRIBE_ANIME_SHIKIMORI);
-            }
-            keyboard.add(row);
         }
 
 
