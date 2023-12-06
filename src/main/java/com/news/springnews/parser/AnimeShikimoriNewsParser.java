@@ -19,14 +19,15 @@ public class AnimeShikimoriNewsParser implements INewsParser {
 
         try {
             var document = Jsoup.connect("https://shikimori.one/forum/news").get();
-            var newsElements = document.select("div.body b");
+            var newsElements = document.select("article.b-topic.b-topic-preview.b-news-topic");
 
             for (var newsElement : newsElements) {
-                var titleElement = newsElement.selectFirst("header a.name");
+                var titleElement = newsElement.selectFirst("div.name-date a.name");
                 String title = titleElement.text();
 
-                var contentElement = newsElement.selectFirst("div.body-inner");
-                String content = contentElement.text();
+                // Extract content by following the link
+                String contentUrl = titleElement.attr("href");
+                String content = fetchContent(contentUrl);
 
                 News news = new News();
                 news.setType(SubscriptionType.ANIME_SHIKIMORI);
@@ -36,12 +37,21 @@ public class AnimeShikimoriNewsParser implements INewsParser {
                 newsList.add(news);
             }
         } catch (IOException e) {
-
             e.printStackTrace();
         }
 
         Collections.reverse(newsList);
 
         return newsList;
+    }
+
+    private String fetchContent(String contentUrl) throws IOException {
+        var newsDocument = Jsoup.connect(contentUrl).get();
+        var contentElement = newsDocument.selectFirst("div.body-inner");
+
+        // Convert HTML to Telegram message entity format
+        String formattedContent = convertToTelegramFormat(contentElement);
+
+        return formattedContent;
     }
 }

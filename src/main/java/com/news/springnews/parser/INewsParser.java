@@ -45,8 +45,11 @@ public interface INewsParser {
                     case "p":
                         result.append(convertToTelegramFormat(childElement)).append("\n\n");
                         break;
+                    case "br":
+                        result.append("\n");
+                        break;
                     case "li":
-                        result.append("- ").append(convertToTelegramFormat(childElement));
+                        result.append("- ").append(convertToTelegramFormat(childElement)).append("\n");
                         break;
                     default:
                         // If the tag is not recognized, simply process its children
