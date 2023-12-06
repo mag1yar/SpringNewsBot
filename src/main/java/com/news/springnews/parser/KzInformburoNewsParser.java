@@ -30,13 +30,10 @@ public class KzInformburoNewsParser implements INewsParser {
                 String link = titleElement.select("div.uk-width-expand > a").first().attr("href");
                 String title = titleElement.select("div.uk-width-expand > a").first().ownText();
 
-                // Navigate to the link to get content
-                var newsDocument = Jsoup.connect(link).get();
-                String content = newsDocument.select("div[class*=article] p").text();
-
                 News news = new News();
                 news.setType(SubscriptionType.KZ_INFORMBURO);
                 news.setTitle(title);
+                String content = fetchContent(link);
                 news.setContent(content);
 
                 newsList.add(news);
@@ -48,5 +45,23 @@ public class KzInformburoNewsParser implements INewsParser {
         Collections.reverse(newsList);
 
         return newsList;
+    }
+
+    private String fetchContent(String newsUrl) throws IOException {
+        var newsDocument = Jsoup.connect(newsUrl).get();
+
+        // Extract article-excerpt and article content
+        var articleExcerptElement = newsDocument.selectFirst(".article-excerpt");
+        var articleElement = newsDocument.selectFirst(".article");
+        articleElement.select("div.read-more").remove();
+
+        // Convert HTML to Telegram message entity format
+        String formattedExcerpt = convertToTelegramFormat(articleExcerptElement);
+        String formattedContent = convertToTelegramFormat(articleElement);
+
+        // Concatenate and wrap in <p> tags
+        String formattedContentWithParagraphs = formattedExcerpt + "\n\n" + formattedContent;
+
+        return formattedContentWithParagraphs;
     }
 }
