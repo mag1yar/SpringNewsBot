@@ -46,53 +46,37 @@ public class SpringNewsBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if(!update.hasMessage() || !update.getMessage().hasText()) return;
 
-        var message = update.getMessage().getText();
+        var message = update.getMessage().getText().toLowerCase();
         var chatId = update.getMessage().getChatId();
         var userName = update.getMessage().getChat().getUserName();
 
         User user = userService.getExistingOrCreateUser(chatId, userName);
 
-        switch (message) {
-            case Command.START -> {
-                startCommand(chatId, userName);
-            }
-            case Command.Home -> {
-                homeCommand(user);
-            }
-            case Command.SUBSCRIPTIONS -> {
-                subscriptionsCommand(user);
-            }
-
-            case Command.NEWS_KZ -> {
-                kzNewsCommand(chatId, userName);
-            }
-            case Command.NEWS_GAMES -> {
-                gameNewsCommand(chatId, userName);
-            }
-            case Command.NEWS_ANIME -> {
-                animeNewsCommand(chatId, userName);
-            }
-
-            case Command.SUBSCRIBE_KZ_INFORMBURO -> {
-                subscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
-            }
-            case Command.UNSUBSCRIBE_KZ_INFORMBURO -> {
-                unsubscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
-            }
-            case Command.SUBSCRIBE_GAMES_STOPGAME -> {
-                subscribeCommand(user, SubscriptionType.GAME_STOPGAME);
-            }
-            case Command.UNSUBSCRIBE_GAMES_STOPGAME -> {
-                unsubscribeCommand(user, SubscriptionType.GAME_STOPGAME);
-            }
-            case Command.SUBSCRIBE_ANIME_SHIKIMORI -> {
-                subscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
-            }
-            case Command.UNSUBSCRIBE_ANIME_SHIKIMORI -> {
-                unsubscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
-            }
+        if (message.equals(Command.START.toLowerCase())) {
+            startCommand(chatId, userName);
+        } else if (message.equals(Command.Home.toLowerCase())) {
+            homeCommand(user);
+        } else if (message.equals(Command.SUBSCRIPTIONS.toLowerCase())) {
+            subscriptionsCommand(user);
+        } else if (message.equals(Command.NEWS_KZ.toLowerCase())) {
+            kzNewsCommand(chatId, userName);
+        } else if (message.equals(Command.NEWS_GAMES.toLowerCase())) {
+            gameNewsCommand(chatId, userName);
+        } else if (message.equals(Command.NEWS_ANIME.toLowerCase())) {
+            animeNewsCommand(chatId, userName);
+        } else if (message.equals(Command.SUBSCRIBE_KZ_INFORMBURO.toLowerCase())) {
+            subscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
+        } else if (message.equals(Command.UNSUBSCRIBE_KZ_INFORMBURO.toLowerCase())) {
+            unsubscribeCommand(user, SubscriptionType.KZ_INFORMBURO);
+        } else if (message.equals(Command.SUBSCRIBE_GAMES_STOPGAME.toLowerCase())) {
+            subscribeCommand(user, SubscriptionType.GAME_STOPGAME);
+        } else if (message.equals(Command.UNSUBSCRIBE_GAMES_STOPGAME.toLowerCase())) {
+            unsubscribeCommand(user, SubscriptionType.GAME_STOPGAME);
+        } else if (message.equals(Command.SUBSCRIBE_ANIME_SHIKIMORI.toLowerCase())) {
+            subscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
+        } else if (message.equals(Command.UNSUBSCRIBE_ANIME_SHIKIMORI.toLowerCase())) {
+            unsubscribeCommand(user, SubscriptionType.ANIME_SHIKIMORI);
         }
-
     }
 
     @Override

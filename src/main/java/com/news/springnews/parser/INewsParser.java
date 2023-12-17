@@ -51,6 +51,10 @@ public interface INewsParser {
                     case "li":
                         result.append("- ").append(convertToTelegramFormat(childElement)).append("\n");
                         break;
+                    case "a":
+                        String href = childElement.attr("href");
+                        result.append("<a href=\"").append(href).append("\">").append(convertToTelegramFormat(childElement)).append("</a>");
+                        break;
                     default:
                         // If the tag is not recognized, simply process its children
                         result.append(convertToTelegramFormat(childElement));
